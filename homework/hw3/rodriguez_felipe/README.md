@@ -241,3 +241,54 @@ can modify that configuration can reopen access; this test does not harden the
 administrative control plane. The restriction also does not protect `/chat`,
 `/summarize`, or `/rag`, nor does it allow a legitimate task that requires looking
 up balances or sending email. It preserves the chosen benign task, not all functionality.
+
+
+## Part C — Where our red team might be unfair
+
+Our results demonstrate the behavior of the vulnerable application under controlled conditions, but there are limitations that should be considered when interpreting the findings.
+
+### C1. Reliability limitations
+
+All the attack cases reported as 5/5 were executed using the deterministic mock backend. This means that the results demonstrate repeatable behavior in the test environment, but they do not represent the probability that a real LLM would follow the same malicious instructions.
+
+This limitation applies to:
+- Direct prompt injection: the mock consistently returned the confidential canary.
+- Indirect prompt injection: the mock consistently followed instructions embedded in the poisoned HTML page.
+- RAG attacks: the mock consistently exposed the canary when private or poisoned documents were retrieved.
+- Encoded-secret bypass: the mock consistently reconstructed the canary from spaced and Base64 representations.
+
+The confused-deputy attack also has a reliability limitation because `/agent` uses a deterministic `plan_tool_calls` function instead of an LLM to select tools. Therefore, its 5/5 results demonstrate the application's tool execution behavior, not real model decision-making.
+
+A real LLM could reject these instructions, misunderstand the payload, or produce different results between trials. Additional testing with an actual local model would be necessary to measure its reliability.
+
+### C2. What the deterministic mock demonstrated
+
+The deterministic mock allowed us to demonstrate the application's attack and defense logic in a controlled and reproducible environment.
+
+It helped confirm:
+- That confidential information could reach the response through direct and indirect injection.
+- That retrieved RAG documents could influence the generated answer.
+- That literal output filtering could be bypassed using encoded representations.
+- That the tool dispatcher enforced the configured allow-list.
+
+However, these experiments demonstrate the application's behavior rather than the statistical reliability of a real language model. In particular, the mock does not measure how likely an actual LLM is to follow malicious instructions.
+
+### C3. Least-privilege limitations and false-positive cost
+
+Our containment policy allows only the `get_faq` tool. This is sufficient for the legitimate task of answering questions about support hours, which remains functional in our tests.
+
+However, this policy also prevents legitimate operations that require `lookup_balance` or `send_email`.
+
+For example, a legitimate user requesting an account balance or asking the agent to send an email would be unable to complete the task because the required tools are denied.
+
+This represents a false-positive cost: the policy successfully contains malicious tool execution, but it also restricts some legitimate functionality.
+
+Therefore, the policy provides strong containment for the tested attack, but it is not a complete solution for every business requirement. A production implementation would need more granular permissions based on user roles, task requirements, and authorization checks.
+
+### Final reflection
+
+The main lesson from this exercise is that preventing prompt injection and containing its consequences are different security objectives.
+
+Model-level defenses can increase the difficulty of an attack, but they do not provide a reliable security boundary. Least-privilege enforcement provides a stronger guarantee for tool execution, although it introduces functionality trade-offs.
+
+Our results should therefore be interpreted as controlled demonstrations of attack paths and architectural containment, not as proof of real-world LLM attack probabilities.

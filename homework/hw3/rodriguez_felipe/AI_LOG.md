@@ -74,3 +74,15 @@ source used in the experiment. I understand that `evidence/results.json` is
 written after the checks pass and overwritten by a successful subsequent run,
 and that its mock results do not establish statistical reliability for a real
 model.
+
+## Homework 3 — Part C honesty section
+
+**Tool:** ChatGPT.
+
+**What I asked:** Help me review the existing experiments and identify the limitations of the red-team results, particularly the deterministic mock backend, the reliability measurements, and the least-privilege policy.
+
+**What I got:** Assistance identifying the main limitations of the experiments and organizing the honesty section around three topics: reliability limitations, what the deterministic mock demonstrated, and the functionality restrictions introduced by the allow-list.
+
+**What I did with it:** Used the analysis to complete Part C in the README.md. The section explains why the 5/5 results cannot be interpreted as real LLM reliability measurements, why the mock is still useful for demonstrating application behavior, and how restricting the agent to `get_faq` affects legitimate operations.
+
+**Did I understand it?** I understand that deterministic results demonstrate repeatability in the tested environment, but they do not measure how a real LLM would behave. I also understand that least privilege provides a stronger security boundary for tool execution, but overly restrictive permissions can prevent legitimate tasks from working.
